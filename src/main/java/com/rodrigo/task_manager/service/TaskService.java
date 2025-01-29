@@ -1,5 +1,6 @@
 package com.rodrigo.task_manager.service;
 
+import com.rodrigo.task_manager.exceptions.ResourceNotFoundException;
 import com.rodrigo.task_manager.model.Task;
 import com.rodrigo.task_manager.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,11 @@ public class TaskService {
     }
 
     public void deleteById(Long id) {
-        taskRepository.deleteById(id);
+        if(taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
+        } else {
+            throw new ResourceNotFoundException("Task not found");
+        }
     }
 
     public Task updateTask(long id, Task updatedTask) {
@@ -46,7 +51,7 @@ public class TaskService {
             return taskRepository.save(task);
 
         } else {
-            throw new RuntimeException("Task not found with id: " + id);
+            throw new ResourceNotFoundException("Task not found with id: " + id);
         }
     }
 
@@ -58,7 +63,7 @@ public class TaskService {
         if(task.isPresent()) {
             return task.get();
         } else {
-            throw new RuntimeException("Task not found with id: " + id);
+            throw new ResourceNotFoundException("Task not found with id: " + id);
         }
     }
 

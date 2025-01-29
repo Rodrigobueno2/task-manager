@@ -1,5 +1,7 @@
 package com.rodrigo.task_manager.unit.service;
 
+import com.rodrigo.task_manager.enuns.Status;
+import com.rodrigo.task_manager.exceptions.ResourceNotFoundException;
 import com.rodrigo.task_manager.model.Task;
 import com.rodrigo.task_manager.repository.TaskRepository;
 import com.rodrigo.task_manager.service.TaskService;
@@ -76,8 +78,8 @@ public class TaskServiceTest {
     @Test
     public void testListarTodasTarefas() {
         // configurar
-        Task task1 = new Task(1L,"tarefa1","descrição1","ativo",LocalDateTime.now());
-        Task task2 = new Task(2L,"tarefa2","descrição2","ativo",LocalDateTime.now());
+        Task task1 = new Task(1L,"tarefa1","descrição1", Status.FAZENDO,LocalDateTime.now());
+        Task task2 = new Task(2L,"tarefa2","descrição2",Status.FAZENDO,LocalDateTime.now());
         when(taskRepository.findAll()).thenReturn(Arrays.asList(task1,task2));
 
         List<Task> tasks = taskService.findAll();
@@ -91,7 +93,7 @@ public class TaskServiceTest {
     @Test
     public void testBuscarTarefaQueExiste() {
         //Criando uma tarefa mockada
-        Task task = new Task(1L,"tarefa1","descrição1","ativo",LocalDateTime.now());
+        Task task = new Task(1L,"tarefa1","descrição1",Status.FAZENDO,LocalDateTime.now());
 
         // Mockando o comportamento do repositório
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
@@ -116,7 +118,7 @@ public class TaskServiceTest {
         when(taskRepository.findById(2L)).thenReturn(Optional.empty());
 
         // Executar o método e verificar exceção
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> taskService.findById(2L));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> taskService.findById(2L));
 
 
         assertEquals("Task not found with id: " + 2L, exception.getMessage());
@@ -131,13 +133,13 @@ public class TaskServiceTest {
 
         Task existeTask = new Task();
         existeTask.setDescription("velha descrição");
-        existeTask.setStatus("velho status");
+        existeTask.setStatus(Status.FAZENDO);
         existeTask.setTitle("velho titulo");
         existeTask.setId(id);
 
         Task taskAtualizada = new Task();
         taskAtualizada.setDescription("nova descrição");
-        taskAtualizada.setStatus("novo status");
+        taskAtualizada.setStatus(Status.PENDENTE);
         taskAtualizada.setTitle("novo titulo");
 
         when(taskRepository.findById(id)).thenReturn(Optional.of(existeTask));
@@ -148,7 +150,7 @@ public class TaskServiceTest {
         assertNotNull(result);
         assertEquals("novo titulo", result.getTitle());
         assertEquals("nova descrição", result.getDescription());
-        assertEquals("novo status", result.getStatus());
+        assertEquals(Status.PENDENTE, result.getStatus());
 
         verify(taskRepository, times(1)).findById(id); // Verifica que o findById foi chamado
         verify(taskRepository, times(1)).save(existeTask);
@@ -160,7 +162,7 @@ public class TaskServiceTest {
 
         Task updatedTask = new Task();
         updatedTask.setTitle("novo titulo");
-        updatedTask.setStatus("novo status");
+        updatedTask.setStatus(Status.CONCLUIDO);
         updatedTask.setDescription("nova descrição");
 
         // Simular o repositório retornando vazio
@@ -176,12 +178,28 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testDeletarTarefaById() {
+    public void testDeletarTarefaByIdQuandoExiste() {
         Long id = 1L;
+
+        when(taskRepository.existsById(id)).thenReturn(true);
 
         taskService.deleteById(id);
 
         verify(taskRepository, times(1)).deleteById(id);
     }
 
+    @Test
+    public void testDeletarTarefaByIdQuandoTarefaNaoExiste() {
+        Long id = 999L;
+
+        when(taskRepository.existsById(id)).thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            taskService.deleteById(id);
+        });
+
+        assertEquals("Task not found",exception.getMessage());
+        verify(taskRepository, never()).deleteById(anyLong());
+
+    }
 }

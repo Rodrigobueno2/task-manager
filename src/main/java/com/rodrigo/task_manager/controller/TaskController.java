@@ -3,6 +3,7 @@ package com.rodrigo.task_manager.controller;
 import com.rodrigo.task_manager.model.Task;
 import com.rodrigo.task_manager.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class TaskController {
         return taskService.updateTask(id,updateTask);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void deleteTask(@PathVariable Long id) {
         taskService.deleteById(id);

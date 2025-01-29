@@ -1,5 +1,6 @@
 package com.rodrigo.task_manager.model;
 
+import com.rodrigo.task_manager.enuns.Status;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,8 @@ public class Task {
     private String description;
 
     @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -46,11 +48,11 @@ public class Task {
         this.description = description;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -62,7 +64,7 @@ public class Task {
         this.createdAt = createdAt;
     }
 
-    public Task(Long id, String title, String description, String status, LocalDateTime createdAt) {
+    public Task(Long id, String title, String description, Status status, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.description = description;
